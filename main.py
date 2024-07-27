@@ -1,23 +1,25 @@
 #!/usr/bin/env python3
 
-from datetime import date
+from datetime import date, datetime
 from simple_term_menu import TerminalMenu
 import argparse
 
 
 def log_message(message):
     today = date.today()
+    current_time = datetime.now().strftime("%H:%M:%S")
     file_name = f"{today}.txt"
     with open(file_name, "a") as file:
-        file.write("Message: " + message + "\n")
+        file.write(f"[{current_time}] Message: {message}\n")
     print(f"Logged message to '{file_name}'.")
 
 
 def log_mood(mood):
     today = date.today()
+    current_time = datetime.now().strftime("%H:%M:%S")
     file_name = f"{today}.txt"
     with open(file_name, "a") as file:
-        file.write("Mood: " + mood + "\n")
+        file.write(f"[{current_time}] Mood: {mood}\n")
     print(f"Logged mood to '{file_name}'.")
 
 
