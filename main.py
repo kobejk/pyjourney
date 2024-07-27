@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 from datetime import date
+from simple_term_menu import TerminalMenu
 import argparse
 
 
@@ -8,48 +9,50 @@ def log_message(message):
     today = date.today()
     file_name = f"{today}.txt"
     with open(file_name, "a") as file:
-        file.write(message + "\n")
-    print(f"🤝 Logged to '{file_name}'.")
+        file.write("Message: " + message + "\n")
+    print(f"Logged message to '{file_name}'.")
 
 
-def log_mood():
-    moods = ['happy', 'sad', 'anxious']
-    print("How are you feeling? Select a mood:")
-    for idx, mood in enumerate(moods, start=1):
-        print(f"{idx}. {mood}")
-
-    while True:
-        try:
-            choice = int(input("Enter the number of your mood: "))
-            if 1 <= choice <= len(moods):
-                selected_mood = moods[choice - 1]
-                break
-            else:
-                print("Invalid choice. Please select a valid number.")
-        except ValueError:
-            print("Invalid input. Please enter a number.")
-
-    log_message(f"Mood: {selected_mood}")
+def log_mood(mood):
+    today = date.today()
+    file_name = f"{today}.txt"
+    with open(file_name, "a") as file:
+        file.write("Mood: " + mood + "\n")
+    print(f"Logged mood to '{file_name}'.")
 
 
-def main():
-    parser = argparse.ArgumentParser(description="Journal logging script")
-    subparsers = parser.add_subparsers(dest="command")
+def select_mood():
+    options = ["happy", "sad", "anxious", "angry", "annoyed", "excited"]
+    terminal_menu = TerminalMenu(
+        options, title="How are you feeling today?", accept_keys=("enter", " "))
+    menu_entry_index = terminal_menu.show()
+    selected_mood = options[menu_entry_index]
+    log_mood(selected_mood)
 
-    # Subparser for the log command
+
+def parse_args():
+    parser = argparse.ArgumentParser(
+        description='pyjourney :: a python journal.')
+    subparsers = parser.add_subparsers(dest="command", help="Subcommands")
+
+    # Subparser for logging
     log_parser = subparsers.add_parser('log', help='Log a new message')
     log_parser.add_argument('-m', '--message', type=str,
                             required=True, help='The message to log')
 
-    # Subparser for the mood command
+    # Subparser for mood
     subparsers.add_parser('mood', help='Log your current mood')
 
-    args = parser.parse_args()
+    return parser, parser.parse_args()
+
+
+def main():
+    parser, args = parse_args()
 
     if args.command == "log":
         log_message(args.message)
     elif args.command == "mood":
-        log_mood()
+        select_mood()
     else:
         parser.print_help()
 
