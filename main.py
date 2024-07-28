@@ -38,6 +38,37 @@ def select_mood():
     log_mood(selected_mood)
 
 
+def log_todo(todo):
+    with open(get_filename(), "a") as file:
+        file.write(f"[{get_time()}] Todo: [ ] {todo}\n")
+    print(f"Logged todo to '{get_filename()}'.")
+
+
+def complete_todo():
+    try:
+        with open(get_filename(), "r") as file:
+            lines = file.readlines()
+        todos = [line for line in lines if "[ ]" in line]
+        if not todos:
+            print("No todos for today.")
+            return
+
+        terminal_menu = TerminalMenu(
+            todos, title="Which todo have you completed?", accept_keys=("enter", " "))
+        menu_entry_index = terminal_menu.show()
+        selected_todo = todos[menu_entry_index]
+
+        with open(get_filename(), "w") as file:
+            for line in lines:
+                if line == selected_todo:
+                    file.write(line.replace("[ ]", "[x]"))
+                else:
+                    file.write(line)
+        print(f"Checked off todo: '{selected_todo.strip()}'.")
+    except FileNotFoundError:
+        print("No log file has been created for today.")
+
+
 def parse_args():
     parser = argparse.ArgumentParser(
         description='pyjourney :: a python journal.')
@@ -51,6 +82,13 @@ def parse_args():
     # Subparser for mood
     subparsers.add_parser('mood', help='Log your current mood')
 
+    # Subparser for logging
+    todo_parser = subparsers.add_parser('todo', help='Add a todo to your list')
+    todo_parser.add_argument('-a', '--add', type=str,
+                             required=False, help='The todo to add')
+    todo_parser.add_argument('-c', '--check', action='store_true',
+                             help='Check off a completed todo')
+
     return parser, parser.parse_args()
 
 
@@ -62,7 +100,12 @@ def main():
     elif args.command == "mood":
         select_mood()
     elif args.command == "todo":
-        log_todo()
+        if args.add:
+            log_todo(args.add)
+        elif args.check:
+            complete_todo()
+        else:
+            parser.print_help()
     else:
         parser.print_help()
 
