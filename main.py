@@ -5,22 +5,28 @@ from simple_term_menu import TerminalMenu
 import argparse
 
 
+def get_date():
+    return date.today()
+
+
+def get_time():
+    return datetime.now().strftime("%H:%M:%S")
+
+
+def get_filename():
+    return f"{get_date()}.md"
+
+
 def log_message(message):
-    today = date.today()
-    current_time = datetime.now().strftime("%H:%M:%S")
-    file_name = f"{today}.txt"
-    with open(file_name, "a") as file:
-        file.write(f"[{current_time}] Message: {message}\n")
-    print(f"Logged message to '{file_name}'.")
+    with open(get_filename(), "a") as file:
+        file.write(f"[{get_time()}] Message: {message}\n")
+    print(f"Logged message to '{get_filename()}'.")
 
 
 def log_mood(mood):
-    today = date.today()
-    current_time = datetime.now().strftime("%H:%M:%S")
-    file_name = f"{today}.txt"
-    with open(file_name, "a") as file:
-        file.write(f"[{current_time}] Mood: {mood}\n")
-    print(f"Logged mood to '{file_name}'.")
+    with open(get_filename(), "a") as file:
+        file.write(f"[{get_time()}] Mood: {mood}\n")
+    print(f"Logged mood to '{get_filename()}'.")
 
 
 def select_mood():
@@ -55,6 +61,8 @@ def main():
         log_message(args.message)
     elif args.command == "mood":
         select_mood()
+    elif args.command == "todo":
+        log_todo()
     else:
         parser.print_help()
 
