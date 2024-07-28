@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 
 from datetime import date, datetime
-from simple_term_menu import TerminalMenu
 import argparse
+import os
 
 
 def get_date():
@@ -31,10 +31,8 @@ def log_mood(mood):
 
 def select_mood():
     options = ["happy", "sad", "anxious", "angry", "annoyed", "excited"]
-    terminal_menu = TerminalMenu(
-        options, title="How are you feeling today?", accept_keys=("enter", " "))
-    menu_entry_index = terminal_menu.show()
-    selected_mood = options[menu_entry_index]
+    selected_mood = display_menu(
+        "How are you feeling today?", options, multi_select=False)
     log_mood(selected_mood)
 
 
@@ -53,21 +51,60 @@ def complete_todo():
             print("No todos for today.")
             return
 
-        terminal_menu = TerminalMenu(
-            todos, title="Which todos have you completed?", multi_select=True, show_multi_select_hint=True, accept_keys=("enter", " "))
-        menu_entry_indices = terminal_menu.show()
-        selected_todos = [todos[i] for i in menu_entry_indices]
+        # Extract todo descriptions without timestamps
+        todo_descriptions = [line.split("] Todo: [ ] ")[
+            1].strip() for line in todos]
+
+        selected_todos = display_menu(
+            "Which todos have you completed?", todo_descriptions, multi_select=True)
+        selected_todo_lines = [
+            todos[todo_descriptions.index(todo)] for todo in selected_todos]
 
         with open(get_filename(), "w") as file:
             for line in lines:
-                if line in selected_todos:
+                if line in selected_todo_lines:
                     file.write(line.replace("[ ]", "[x]"))
                 else:
                     file.write(line)
         for todo in selected_todos:
-            print(f"Checked off todo: '{todo.strip()}'.")
+            # Use the cleaned todo descriptions directly
+            print(f"Checked off todo: '{todo}'.")
     except FileNotFoundError:
         print("No log file has been created for today.")
+
+
+def display_menu(title, options, multi_select=False):
+    selected_indices = set()
+    while True:
+        os.system('cls' if os.name == 'nt' else 'clear')
+        print(title)
+        for idx, option in enumerate(options):
+            prefix = "[x] " if idx in selected_indices else "[ ] "
+            print(f"{idx + 1}. {prefix}{option.strip()}")
+
+        if multi_select:
+            print(
+                "\nEnter the number of the todo to toggle it. Press Enter to finalise your selection.")
+        else:
+            print("\nEnter the number of the mood to select it.")
+
+        try:
+            choice = input("> ").strip()
+            if choice == "" and multi_select:
+                break
+            index = int(choice) - 1
+            if 0 <= index < len(options):
+                if multi_select:
+                    if index in selected_indices:
+                        selected_indices.remove(index)
+                    else:
+                        selected_indices.add(index)
+                else:
+                    return options[index]
+        except (ValueError, IndexError):
+            continue
+
+    return [options[i] for i in selected_indices]
 
 
 def parse_args():
@@ -83,8 +120,8 @@ def parse_args():
     # Subparser for mood
     subparsers.add_parser('mood', help='Log your current mood')
 
-    # Subparser for logging
-    todo_parser = subparsers.add_parser('todo', help='Add a todo to your list')
+    # Subparser for todo
+    todo_parser = subparsers.add_parser('todo', help='Manage todos')
     todo_parser.add_argument('-a', '--add', type=str,
                              required=False, help='The todo to add')
     todo_parser.add_argument('-c', '--check', action='store_true',
