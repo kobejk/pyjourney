@@ -54,17 +54,18 @@ def complete_todo():
             return
 
         terminal_menu = TerminalMenu(
-            todos, title="Which todo have you completed?", accept_keys=("enter", " "))
-        menu_entry_index = terminal_menu.show()
-        selected_todo = todos[menu_entry_index]
+            todos, title="Which todos have you completed?", multi_select=True, show_multi_select_hint=True, accept_keys=("enter", " "))
+        menu_entry_indices = terminal_menu.show()
+        selected_todos = [todos[i] for i in menu_entry_indices]
 
         with open(get_filename(), "w") as file:
             for line in lines:
-                if line == selected_todo:
+                if line in selected_todos:
                     file.write(line.replace("[ ]", "[x]"))
                 else:
                     file.write(line)
-        print(f"Checked off todo: '{selected_todo.strip()}'.")
+        for todo in selected_todos:
+            print(f"Checked off todo: '{todo.strip()}'.")
     except FileNotFoundError:
         print("No log file has been created for today.")
 
